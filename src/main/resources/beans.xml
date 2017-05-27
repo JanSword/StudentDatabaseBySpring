@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xsi:schemaLocation="
+http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans.xsd
+http://www.springframework.org/schema/context
+http://www.springframework.org/schema/context/spring-context.xsd
+http://www.springframework.org/schema/tx
+http://www.springframework.org/schema/tx/spring-tx.xsd
+http://www.springframework.org/schema/data/jpa
+http://www.springframework.org/schema/data/jpa/spring-jpa.xsd "
+       xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns="http://www.springframework.org/schema/beans"
+       >
+
+    <!--1 配置数据源-->
+    <bean class="org.springframework.jdbc.datasource.DriverManagerDataSource" id="dataSource">
+        <property value="com.mysql.jdbc.Driver" name="driverClassName"/>
+        <property value="root" name="username"/>
+        <property value="jdbc:mysql:///student_data?characterEncoding=utf8&amp;useSSL=true" name="url"/>
+        <property value="123456" name="password"/>
+    </bean>
+
+    <!--2 配置EntityManagerFactory-->
+    <bean class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean" id="entityManagerFactory">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="jpaVendorAdapter">
+            <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter"/>
+        </property>
+        <property value="com.biz.std" name="packagesToScan"/>
+        <property name="jpaProperties">
+            <props>
+                <!--EJB命名策略-->
+                <prop key="hibernate.ejb.naming_strategy">org.hibernate.cfg.ImprovedNamingStrategy</prop>
+                <prop key="hibernate.dialect">org.hibernate.dialect.MySQL5InnoDBDialect</prop>
+                <!--执行的时候显示SQL-->
+                <prop key="hibernate.show_sql">true</prop>
+                <!--显示的SQL语句将格式化，方便查看调优-->
+                <prop key="hibernate.format_sql">true</prop>
+                <!--没有表的话自动创建-->
+                <prop key="hibernate.hbm2ddl.auto">update</prop>
+            </props>
+        </property>
+    </bean>
+
+    <!--3 配置事务管理器-->
+    <bean class="org.springframework.orm.jpa.JpaTransactionManager" id="transactionManager">
+        <property name="entityManagerFactory" ref="entityManagerFactory"/>
+    </bean>
+
+    <!--4 配置支持注解的事务-->
+    <tx:annotation-driven transaction-manager="transactionManager"/>
+
+    <!--5 配置Spring Data-->
+    <jpa:repositories entity-manager-factory-ref="entityManagerFactory" base-package="com.biz.std"/>
+    <context:component-scan base-package="com.biz.std">
+        <!--<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>-->
+    </context:component-scan>
+
+</beans>
